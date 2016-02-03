@@ -1,3 +1,6 @@
+var map;
+var markerArray = [];
+
 function initialize_gmaps() {
 
   // initialize new google maps LatLng object
@@ -15,47 +18,93 @@ function initialize_gmaps() {
   var map_canvas_obj = document.getElementById('map-canvas');
 
   // initialize a new Google Map with the options
-  var map = new google.maps.Map(map_canvas_obj, mapOptions);
+  map = new google.maps.Map(map_canvas_obj, mapOptions);
+  
+}
 
-  // add the marker to the map
-  var marker = new google.maps.Marker({
-    position: myLatlng,
-    title: 'Hello World!'
+function removeMarker(name) {
+  markerArray.forEach(function(pin, index) {
+    if (pin.name == name) {
+      pin.marker.setMap(null);
+      markerArray = markerArray.slice(0, index).concat(markerArray.slice(index+1));
+    }
   });
+}
+
+function showMarkers (nameArr) {
+  markerArray.forEach(function(pin) {
+    pin.marker.setMap(null);
+  });
+  nameArr.forEach(function(name) {
+    markerArray.forEach(function(pin) {
+      if (pin.name == name) pin.marker.setMap(map);
+    });
+  });
+  if (nameArr.length>0) {
+    var bounds = new google.maps.LatLngBounds();
+    markerArray.forEach(function(pin, index) {
+      if (pin.marker.setMap) {
+        bounds.extend(pin.marker.position);
+      }
+    });
+    map.fitBounds(bounds);
+  } else {
+    initialize_gmaps();
+  }
+}
+
+function makeMarker(locationArr, type, name) {
+
+  // // add the marker to the map
+  // var marker = new google.maps.Marker({
+  //   position: myLatlng,
+  //   title: 'Hello World!'
+  // });
 
   // draw some locations on the map
-  function drawLocation(location, opts) {
+  function drawLocation(locationArr, opts) {
     if (typeof opts !== 'object') {
       opts = {};
     }
-    opts.position = new google.maps.LatLng(location[0], location[1]);
+    opts.position = new google.maps.LatLng(locationArr[0], locationArr[1]);
     opts.map = map;
     var marker = new google.maps.Marker(opts);
+    markerArray.push({marker: marker, name:name});
   }
 
-  var hotelLocation = [40.705137, -74.007624];
-  var restaurantLocations = [
-        [40.705137, -74.013940],
-        [40.708475, -74.010846]
-      ];
-  var activityLocations = [
-        [40.716291, -73.995315],
-        [40.707119, -74.003602]
-      ];
-
-  drawLocation(hotelLocation, {
-    icon: '/images/lodging_0star.png'
-  });
-  restaurantLocations.forEach(function(loc) {
-    drawLocation(loc, {
+  if (type === 'Hotels') {
+    var hotelLocation = locationArr;
+    drawLocation(hotelLocation, {
+      icon: '/images/lodging_0star.png'
+    });
+  } else if (type === "Restaurants") {
+    var restaurantLocation = locationArr;
+    drawLocation(restaurantLocation, {
       icon: '/images/restaurant.png'
     });
-  });
-  activityLocations.forEach(function(loc) {
-    drawLocation(loc, {
+    // restaurantLocations.forEach(function(loc) {
+    //   drawLocation(loc, {
+    //     icon: '/images/restaurant.png'
+    //   });
+    // });
+  } else {
+    var activityLocation = locationArr;
+drawLocation(activityLocation, {
       icon: '/images/star-3.png'
     });
-  });
+  }
+  // var activityLocations = [
+  //       // [40.716291, -73.995315],
+  //       // [40.707119, -74.003602]
+  //     ];
+
+
+ 
+  // activityLocations.forEach(function(loc) {
+  //   drawLocation(loc, {
+  //     icon: '/images/star-3.png'
+  //   });
+  // });
 }
 
 $(document).ready(function() {
